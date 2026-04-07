@@ -12,6 +12,20 @@
 - 任务卡支持长按进入“延迟删除”状态并可恢复。
 - 逾期任务自动切换为橙色系，并显示“已截至”。
 
+## 应用截图
+
+首页与横屏全屏模式：
+
+| 首页竖屏 | 首页横屏全屏 |
+| --- | --- |
+| ![首页竖屏](docs/screenshots/home-android-portrait.jpg) | ![首页横屏全屏](docs/screenshots/home-android-landscape.jpg) |
+
+任务创建与参数设置：
+
+| 添加任务面板 | 设置页 |
+| --- | --- |
+| ![添加任务面板](docs/screenshots/add-task-sheet-android.jpg) | ![设置页](docs/screenshots/settings-android.jpg) |
+
 ## 技术栈
 
 - Flutter 3.x
