@@ -102,23 +102,6 @@ flutter build apk --release
 flutter build ios --release
 ```
 
-## Git 提交建议
-
-当前仓库采用“移动端优先”策略，`.gitignore` 已忽略：
-
-- `linux/`
-- `macos/`
-- `windows/`
-- `web/`
-- `.metadata`
-
-如果你后续要支持桌面/Web，删除对应忽略规则后再提交即可。
-
-## 安全说明
-
-- 不要提交真实 API Key 到仓库。
-- 生产环境建议使用服务端中转与密钥托管，不在客户端硬编码密钥。
-
 ## License
 
-私有项目可暂不声明；若开源请补充许可证（如 MIT）。
+本项目采用 MIT 协议，详见 [LICENSE](LICENSE)。
