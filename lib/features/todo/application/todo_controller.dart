@@ -212,6 +212,25 @@ class TodoController extends StateNotifier<TodoViewState> {
     await refreshTodos();
   }
 
+  Future<void> editTodo({
+    required TodoItem todo,
+    required String title,
+    required DateTime dueAt,
+  }) async {
+    final trimmed = title.trim();
+    if (trimmed.isEmpty) {
+      state = state.copyWith(errorMessage: '任务名称不能为空', clearInfo: true);
+      return;
+    }
+
+    await _repository.editTodo(todo: todo, title: trimmed, dueAt: dueAt);
+    await refreshTodos();
+    state = state.copyWith(
+      infoMessage: '已更新任务：$trimmed',
+      clearError: true,
+    );
+  }
+
   Future<void> longPressTogglePendingDelete(TodoItem todo) async {
     if (todo.isPendingDeletion) {
       await _repository.restoreFromPendingDelete(todo);

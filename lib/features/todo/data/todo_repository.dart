@@ -84,6 +84,25 @@ class TodoRepository {
     }
   }
 
+  Future<TodoItem> editTodo({
+    required TodoItem todo,
+    required String title,
+    required DateTime dueAt,
+  }) async {
+    final updated = todo.copyWith(title: title.trim(), dueAt: dueAt);
+    await _local.updateTodo(updated);
+
+    final id = updated.id;
+    if (id != null) {
+      await _reminder.cancelTodoReminder(id);
+      if (!updated.isDone && !updated.isPendingDeletion) {
+        await _attemptSchedule(updated);
+      }
+    }
+
+    return updated;
+  }
+
   Future<void> reschedulePendingTodos() async {
     final todos = await _local.getTodos();
     for (final todo in todos.where(

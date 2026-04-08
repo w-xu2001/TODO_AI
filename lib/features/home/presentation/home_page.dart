@@ -99,6 +99,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                   .read(todoControllerProvider.notifier)
                                   .longPressTogglePendingDelete(todo);
                             },
+                            onDoubleTapEdit: _openEditTodoDialog,
                           ),
                         ),
                       ],
@@ -125,6 +126,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                   .read(todoControllerProvider.notifier)
                                   .longPressTogglePendingDelete(todo);
                             },
+                            onDoubleTapEdit: _openEditTodoDialog,
                           ),
                         ),
                       ],
@@ -291,6 +293,127 @@ class _HomePageState extends ConsumerState<HomePage> {
         );
       },
     );
+  }
+
+  Future<void> _openEditTodoDialog(TodoItem todo) async {
+    final titleController = TextEditingController(text: todo.title);
+    DateTime selectedDueAt = todo.dueAt;
+    final dueFormatter = DateFormat('yyyy-MM-dd HH:mm');
+
+    try {
+      final shouldSave = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) {
+          return StatefulBuilder(
+            builder: (context, setDialogState) {
+              return AlertDialog(
+                title: const Text('编辑任务'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    TextField(
+                      controller: titleController,
+                      autofocus: true,
+                      decoration: const InputDecoration(
+                        labelText: '任务名称',
+                        hintText: '请输入任务名称',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      '截至时间：${dueFormatter.format(selectedDueAt)}',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: <Widget>[
+                        OutlinedButton.icon(
+                          onPressed: () async {
+                            final pickedDate = await showDatePicker(
+                              context: context,
+                              initialDate: selectedDueAt,
+                              firstDate: DateTime.now().subtract(
+                                const Duration(days: 365 * 2),
+                              ),
+                              lastDate: DateTime.now().add(
+                                const Duration(days: 365 * 3),
+                              ),
+                            );
+                            if (pickedDate == null) {
+                              return;
+                            }
+                            setDialogState(() {
+                              selectedDueAt = DateTime(
+                                pickedDate.year,
+                                pickedDate.month,
+                                pickedDate.day,
+                                selectedDueAt.hour,
+                                selectedDueAt.minute,
+                              );
+                            });
+                          },
+                          icon: const Icon(Icons.calendar_today_rounded),
+                          label: const Text('改日期'),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () async {
+                            final pickedTime = await showTimePicker(
+                              context: context,
+                              initialTime: TimeOfDay.fromDateTime(selectedDueAt),
+                            );
+                            if (pickedTime == null) {
+                              return;
+                            }
+                            setDialogState(() {
+                              selectedDueAt = DateTime(
+                                selectedDueAt.year,
+                                selectedDueAt.month,
+                                selectedDueAt.day,
+                                pickedTime.hour,
+                                pickedTime.minute,
+                              );
+                            });
+                          },
+                          icon: const Icon(Icons.schedule_rounded),
+                          label: const Text('改时间'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop(false);
+                    },
+                    child: const Text('取消'),
+                  ),
+                  FilledButton(
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop(true);
+                    },
+                    child: const Text('保存'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+
+      if (shouldSave != true || !mounted) {
+        return;
+      }
+
+      await ref
+          .read(todoControllerProvider.notifier)
+          .editTodo(todo: todo, title: titleController.text, dueAt: selectedDueAt);
+    } finally {
+      titleController.dispose();
+    }
   }
 
   Future<void> _openSettings() async {
@@ -717,10 +840,15 @@ class _WeekStripCalendarState extends State<_WeekStripCalendar> {
 }
 
 class _RightPanel extends StatelessWidget {
-  const _RightPanel({required this.todos, required this.onLongPressAction});
+  const _RightPanel({
+    required this.todos,
+    required this.onLongPressAction,
+    required this.onDoubleTapEdit,
+  });
 
   final List<TodoItem> todos;
   final ValueChanged<TodoItem> onLongPressAction;
+  final ValueChanged<TodoItem> onDoubleTapEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -753,6 +881,7 @@ class _RightPanel extends StatelessWidget {
                     return _MissionCard(
                       todo: todo,
                       onLongPressAction: () => onLongPressAction(todo),
+                      onDoubleTapEdit: () => onDoubleTapEdit(todo),
                     );
                   },
                 ),
@@ -763,10 +892,15 @@ class _RightPanel extends StatelessWidget {
 }
 
 class _MissionCard extends StatelessWidget {
-  const _MissionCard({required this.todo, required this.onLongPressAction});
+  const _MissionCard({
+    required this.todo,
+    required this.onLongPressAction,
+    required this.onDoubleTapEdit,
+  });
 
   final TodoItem todo;
   final VoidCallback onLongPressAction;
+  final VoidCallback onDoubleTapEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -827,6 +961,7 @@ class _MissionCard extends StatelessWidget {
           onTap: () {
             // Tap only plays ripple feedback to keep interactions lightweight.
           },
+          onDoubleTap: onDoubleTapEdit,
           onLongPress: onLongPressAction,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),

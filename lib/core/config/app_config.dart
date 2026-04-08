@@ -13,7 +13,7 @@ class AppConfig {
 
   static const String apiKey = String.fromEnvironment(
     'TODO_AI_API_KEY',
-    defaultValue: 'sk-xxxxxxxx',
+    defaultValue: 'sk-xxxxx',
   );
 
   static const String defaultModelName = String.fromEnvironment(
